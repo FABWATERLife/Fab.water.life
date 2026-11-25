@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAB Water Life</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background:#eef8ff;color:#123047;
+}
+header{
+  background:#087fc1;color:white;
+  text-align:center;padding:25px 15px;
+}
+header h1{margin:0;font-size:27px}
+header p{margin:8px 0 0}
+main{max-width:520px;margin:20px auto;padding:15px}
+.card{
+  background:white;border-radius:18px;
+  padding:20px;margin-bottom:16px;
+  box-shadow:0 4px 14px #00000012;
+}
+h2{margin-top:0;color:#087fc1}
+.progress{
+  height:18px;background:#dceefa;
+  border-radius:20px;overflow:hidden;margin:15px 0;
+}
+#bar{
+  height:100%;width:0%;background:#08a6df;
+  transition:width .3s;
+}
+.big{text-align:center;font-size:34px;font-weight:bold}
+.center{text-align:center}
+button,select,input{
+  padding:12px;border-radius:10px;
+  border:1px solid #b8d9eb;font-size:15px;
+}
+button{
+  background:#078bc9;color:white;
+  border:0;cursor:pointer;margin:5px;
+}
+button:active{opacity:.8}
+.quick{display:flex;flex-wrap:wrap;justify-content:center}
+.quick button{flex:1;min-width:85px}
+input{width:100%;margin:8px 0}
+select{background:white}
+.secondary{background:#e5f4fc;color:#087fc1}
+#history{padding-left:20px}
+footer{text-align:center;color:#668094;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>💧 FAB Water Life</h1>
+  <p id="tagline">Your Daily Water Reminder</p>
+  <select id="language" onchange="changeLanguage()">
+    <option value="en">English</option>
+    <option value="hi">हिन्दी</option>
+    <option value="te">తెలుగు</option>
+  </select>
+</header>
+
+<main>
+  <section class="card center">
+    <h2 id="todayTitle">Today's Water Intake</h2>
+    <div class="big"><span id="drunk">0</span> ml</div>
+    <p><span id="goalLabel">Daily Goal:</span>
+      <strong id="goalText">2000 ml</strong></p>
+    <div class="progress"><div id="bar"></div></div>
+    <p id="percent">0% completed</p>
+  </section>
+
+  <section class="card">
+    <h2 id="addTitle">Add Water</h2>
+    <div class="quick">
+      <button onclick="addWater(250)">+250 ml</button>
+      <button onclick="addWater(500)">+500 ml</button>
+      <button onclick="addWater(750)">+750 ml</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 id="settingsTitle">Daily Goal</h2>
+    <label id="goalInputLabel">Set your goal (ml)</label>
+    <input type="number" id="goalInput" min="250" step="250" value="2000">
+    <button onclick="saveGoal()" id="saveGoal">Save Goal</button>
+  </section>
+
+  <section class="card">
+    <h2 id="reminderTitle">Water Reminder</h2>
+    <label id="intervalLabel">Reminder interval (minutes)</label>
+    <input type="number" id="interval" min="1" value="60">
+    <button onclick="startReminder()" id="startReminder">Enable Reminder</button>
+    <button class="secondary" onclick="stopReminder()" id="stopReminder">Stop Reminder</button>
+    <p id="reminderStatus">Reminder is off.</p>
+  </section>
+
+  <section class="card">
+    <h2 id="historyTitle">Today's History</h2>
+    <ul id="history"></ul>
+    <button class="secondary" onclick="resetToday()" id="resetButton">Reset Today</button>
+  </section>
+</main>
+
+<footer>FAB Water Life © 2026</footer>
+
+<script>
+const translations = {
+ en:{
+  tagline:"Your Daily Water Reminder",
+  todayTitle:"Today's Water Intake",goal:"Daily Goal:",
+  addTitle:"Add Water",settingsTitle:"Daily Goal",
+  goalInputLabel:"Set your goal (ml)",saveGoal:"Save Goal",
+  reminderTitle:"Water Reminder",intervalLabel:"Reminder interval (minutes)",
+  startReminder:"Enable Reminder",stopReminder:"Stop Reminder",
+  reminderOff:"Reminder is off.",historyTitle:"Today's History",
+  resetButton:"Reset Today",done:"completed",water:"Time"
+ },
+ hi:{
+  tagline:"आपका दैनिक पानी रिमाइंडर",
+  todayTitle:"आज का पानी सेवन",goal:"दैनिक लक्ष्य:",
+  addTitle:"पानी जोड़ें",settingsTitle:"दैनिक लक्ष्य",
+  goalInputLabel:"अपना लक्ष्य सेट करें (ml)",saveGoal:"लक्ष्य सेव करें",
+  reminderTitle:"पानी पीने का रिमाइंडर",intervalLabel:"रिमाइंडर अंतराल (मिनट)",
+  startReminder:"रिमाइंडर चालू करें",stopReminder:"रिमाइंडर बंद करें",
+  reminderOff:"रिमाइंडर बंद है।",historyTitle:"आज का रिकॉर्ड",
+  resetButton:"आज का रिकॉर्ड रीसेट करें",done:"पूरा हुआ",water:"समय"
+ },
+ te:{
+  tagline:"మీ రోజువారీ నీటి రిమైండర్",
+  todayTitle:"ఈరోజు నీటి వినియోగం",goal:"రోజువారీ లక్ష్యం:",
+  addTitle:"నీటిని జోడించండి",settingsTitle:"రోజువారీ లక్ష్యం",
+  goalInputLabel:"లక్ష్యాన్ని నమోదు చేయండి (ml)",saveGoal:"లక్ష్యాన్ని సేవ్ చేయండి",
+  reminderTitle:"నీటి రిమైండర్",intervalLabel:"రిమైండర్ వ్యవధి (నిమిషాలు)",
+  startReminder:"రిమైండర్ ప్రారంభించండి",stopReminder:"రిమైండర్ ఆపండి",
+  reminderOff:"రిమైండర్ ఆఫ్‌లో ఉంది.",historyTitle:"నేటి చరిత్ర",
+  resetButton:"నేటి రికార్డును రీసెట్ చేయండి",done:"పూర్తయింది",water:"సమయం"
+ }
+};
+
+let today = new Date().toLocaleDateString();
+let data = JSON.parse(localStorage.getItem("fabWaterData") || "{}");
+if(data.date !== today){
+ data = {date:today,drunk:0,goal:2000,history:[]};
+}
+let reminderTimer = null;
+
+function save(){
+ localStorage.setItem("fabWaterData",JSON.stringify(data));
+}
+
+function render(){
+ document.getElementById("drunk").textContent=data.drunk;
+ document.getElementById("goalText").textContent=data.goal+" ml";
+ document.getElementById("goalInput").value=data.goal;
+ let percent=Math.min(100,Math.round(data.drunk/data.goal*100));
+ document.getElementById("bar").style.width=percent+"%";
+ document.getElementById("percent").textContent=percent+"% completed";
+ let list=document.getElementById("history");
+ list.innerHTML="";
+ data.history.slice().reverse().forEach(item=>{
+  let li=document.createElement("li");
+  li.textContent=item.amount+" ml — "+item.time;
+  list.appendChild(li);
+ });
+}
+
+function addWater(amount){
+ data.drunk+=amount;
+ data.history.push({
+  amount:amount,
+  time:new Date().toLocaleTimeString()
+ });
+ save();
+ render();
+}
+
+function saveGoal(){
+ let value=Number(document.getElementById("goalInput").value);
+ if(!value || value<250){
+  alert("Please enter a goal of at least 250 ml.");
+  return;
+ }
+ data.goal=value;
+ save();
+ render();
+}
+
+function resetToday(){
+ if(confirm("Reset today's water record?")){
+  data.drunk=0;
+  data.history=[];
+  save();
+  render();
+ }
+}
+
+function startReminder(){
+ let minutes=Number(document.getElementById("interval").value);
+ if(!minutes || minutes<1){
+  alert("Enter at least 1 minute.");
+  return;
+ }
+ if(!("Notification" in window)){
+  alert("Notifications are not supported in this browser.");
+  return;
+ }
+ Notification.requestPermission().then(permission=>{
+  if(permission!=="granted"){
+   document.getElementById("reminderStatus").textContent=
+    "Please allow notifications in browser settings.";
+   return;
+  }
+  if(reminderTimer) clearInterval(reminderTimer);
+  reminderTimer=setInterval(()=>{
+   new Notification("💧 FAB Water Life",{
+    body:"Time to drink some water!"
+   });
+  },minutes*60*1000);
+  document.getElementById("reminderStatus").textContent=
+   "Reminder is on: every "+minutes+" minutes.";
+ });
+}
+
+function stopReminder(){
+ if(reminderTimer) clearInterval(reminderTimer);
+ reminderTimer=null;
+ document.getElementById("reminderStatus").textContent=
+  translations[document.getElementById("language").value].reminderOff;
+}
+
+function changeLanguage(){
+ let t=translations[document.getElementById("language").value];
+ const ids={
+  tagline:"tagline",todayTitle:"todayTitle",goal:"goalLabel",
+  addTitle:"addTitle",settingsTitle:"settingsTitle",
+  goalInputLabel:"goalInputLabel",saveGoal:"saveGoal",
+  reminderTitle:"reminderTitle",intervalLabel:"intervalLabel",
+  startReminder:"startReminder",stopReminder:"stopReminder",
+  historyTitle:"historyTitle",resetButton:"resetButton"
+ };
+ Object.keys(ids).forEach(key=>{
+  document.getElementById(ids[key]).textContent=t[key];
+ });
+ document.getElementById("reminderStatus").textContent=t.reminderOff;
+}
+
+render();
+</script>
+</body>
+</html>
